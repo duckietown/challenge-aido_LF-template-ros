@@ -46,27 +46,13 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 RUN echo PIP_INDEX_URL=${PIP_INDEX_URL}
 
 COPY requirements.* ./
-RUN cat requirements.* > .requirements.txt
+RUN  cat requirements.* > .requirements.txt
 RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
 
 
 RUN echo PYTHONPATH=$PYTHONPATH
 RUN pipdeptree
 RUN pip list
-
-# For ROS Agent - Need to upgrade Pillow for Old ROS stack
-#RUN pip3 install pillow --user --upgrade
-
-# let's copy all our solution files to our workspace
-# if you have more file use the COPY command to move them to the workspace
-COPY solution.py ./
-
-# For ROS Agent - Additional Files
-COPY rosagent.py ./
-COPY template.launch ./
-
-# FIXME: what is this for? envs are not persisted
-RUN /bin/bash -c "export PYTHONPATH="/usr/local/lib/python3.7/dist-packages:$PYTHONPATH""
 
 # For ROS Agent - pulls the default configuration files
 # Think of this as the vehicle name
@@ -79,10 +65,12 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
   catkin build \
     --workspace ${CATKIN_WS_DIR}/
 
+# For ROS Agent - Additional Files
+COPY template.launch .
+COPY run.sh .
 
-# Note: here we try to import the solution code
-# so that we can check all of the libraries are imported correctly
-RUN /bin/bash -c "source ${CATKIN_WS_DIR}/devel/setup.bash && python3 -c 'from solution import *'"
+## Note: here we try to import the solution code
+## so that we can check all of the libraries are imported correctly
+#RUN /bin/bash -c "source ${CATKIN_WS_DIR}/devel/setup.bash && python3 -c 'from solution import *'"
 
-ENV DISABLE_CONTRACTS=1
-CMD ["python3", "solution.py"]
+CMD ./run.sh
