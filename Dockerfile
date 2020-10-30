@@ -47,7 +47,7 @@ RUN pipdeptree
 RUN pip list
 
 # FIXME ros-commons is broken
-RUN apt-get install -y libcairo2-dev libjpeg-dev libgif-dev
+RUN apt-get update && apt-get install -y libcairo2-dev libjpeg-dev libgif-dev
 
 RUN pip3 install pycairo
 RUN pip check
