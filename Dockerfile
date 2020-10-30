@@ -34,18 +34,20 @@ RUN mkdir -p /data/config
 # TODO this is just for the default.yamls - these should really be taken from init_sd_card
 RUN git clone https://github.com/duckietown/duckiefleet.git /data/config
 
-# Before installing
-RUN echo PYTHONPATH=$PYTHONPATH
-RUN pip install pipdeptree
-RUN pipdeptree
-RUN pip list
-
 
 ARG PIP_INDEX_URL
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 RUN echo PIP_INDEX_URL=${PIP_INDEX_URL}
 
-RUN pip3 install -U pip>=20.2
+# Before installing
+RUN echo PYTHONPATH=$PYTHONPATH
+RUN pip3 install -U pip>=20.2 pipdeptree
+
+RUN pipdeptree
+RUN pip list
+RUN pip check
+
+
 COPY requirements.* ./
 RUN cat requirements.* > .requirements.txt
 RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
