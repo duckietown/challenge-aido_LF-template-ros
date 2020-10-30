@@ -45,6 +45,9 @@ RUN pip3 install -U pip>=20.2 pipdeptree
 
 RUN pipdeptree
 RUN pip list
+
+# FIXME ros-commons is broken
+RUN pip3 install pycairo
 RUN pip check
 
 
