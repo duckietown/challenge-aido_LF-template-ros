@@ -41,7 +41,7 @@ RUN echo PIP_INDEX_URL=${PIP_INDEX_URL}
 
 # Before installing
 RUN echo PYTHONPATH=$PYTHONPATH
-RUN pip3 install -U pip>=20.2 pipdeptree
+RUN pip3 install -U "pip>=20.2" pipdeptree
 
 RUN pipdeptree
 RUN pip list
