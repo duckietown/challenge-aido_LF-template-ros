@@ -1,9 +1,10 @@
+import copy
 import os
 
 import cv2
 import numpy as np
 import yaml
-import copy
+
 import rospy
 from duckietown_msgs.msg import WheelsCmdStamped, WheelEncoderStamped
 from sensor_msgs.msg import CameraInfo, CompressedImage
@@ -13,7 +14,7 @@ class ROSAgent:
     def __init__(self):
         # Get the vehicle name, which comes in as HOSTNAME
         self.vehicle = os.getenv("VEHICLE_NAME")
-        topic = "/{}/wheels_driver_node/wheels_cmd".format(self.vehicle)
+        topic = f"/{self.vehicle}/wheels_driver_node/wheels_cmd"
         self.ik_action_sub = rospy.Subscriber(topic, WheelsCmdStamped, self._ik_action_cb)
         # Place holder for the action, which will be read by the agent in solution.py
         self.action = np.array([0.0, 0.0])
@@ -22,13 +23,13 @@ class ROSAgent:
 
         # Publishes onto the corrected image topic
         # since image out of simulator is currently rectified
-        #topic = "/{}/image_topic".format(self.vehicle)
-        topic = "/{}/camera_node/image/compressed".format(self.vehicle)
+        # topic = "/{}/image_topic".format(self.vehicle)
+        topic = f"/{self.vehicle}/camera_node/image/compressed"
         self.cam_pub = rospy.Publisher(topic, CompressedImage, queue_size=10)
 
         # Publisher for camera info - needed for the ground_projection
-        #topic = "/{}/camera_info_topic".format(self.vehicle)
-        topic = "/{}/camera_node/camera_info".format(self.vehicle)
+        # topic = "/{}/camera_info_topic".format(self.vehicle)
+        topic = f"/{self.vehicle}/camera_node/camera_info"
         self.cam_info_pub = rospy.Publisher(topic, CameraInfo, queue_size=1)
 
 
@@ -54,20 +55,17 @@ class ROSAgent:
 
         # Shutdown if no calibration file not found
         if not os.path.isfile(self.cali_file):
-            rospy.signal_shutdown("Found no calibration file ... aborting")
+            rospy.signal_shutdown("Found no calibration file. Aborting")
 
         # Load the calibration file
         self.original_camera_info = self.load_camera_info(self.cali_file)
         self.original_camera_info.header.frame_id = self.frame_id
         self.current_camera_info = copy.deepcopy(self.original_camera_info)
-        rospy.loginfo("Using calibration file: %s" % self.cali_file)
-
+        rospy.loginfo(f"Using calibration file: {self.cali_file}")
 
         # Initializes the node
         rospy.init_node("ROSTemplate")
 
-        # 15Hz ROS Cycle - TODO: What is this number?
-        self.r = rospy.Rate(15)
 
     def _ik_action_cb(self, msg):
         """
@@ -146,7 +144,7 @@ class ROSAgent:
 
         """
         with open(filename, 'r') as stream:
-            calib_data = yaml.load(stream)
+            calib_data = yaml.load(stream, Loader=yaml.Loader)
         cam_info = CameraInfo()
         cam_info.width = calib_data['image_width']
         cam_info.height = calib_data['image_height']

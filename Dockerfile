@@ -41,7 +41,7 @@ RUN echo PIP_INDEX_URL=${PIP_INDEX_URL}
 
 # Before installing
 RUN echo PYTHONPATH=$PYTHONPATH
-RUN pip3 install -U pip>=20.2 pipdeptree
+RUN pip3 install -U "pip>=20.2" pipdeptree
 
 RUN pipdeptree
 RUN pip list
@@ -49,7 +49,7 @@ RUN pip list
 # FIXME ros-commons is broken
 RUN apt-get update && apt-get install -y libcairo2-dev libjpeg-dev libgif-dev
 
-RUN pip3 install pycairo
+RUN pip3 install pycairo==1.19.1
 RUN pip check
 
 
