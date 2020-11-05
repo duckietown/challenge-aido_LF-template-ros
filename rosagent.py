@@ -6,7 +6,7 @@ import numpy as np
 import yaml
 
 import rospy
-from duckietown_msgs.msg import WheelsCmdStamped
+from duckietown_msgs.msg import WheelsCmdStamped, WheelEncoderStamped
 from sensor_msgs.msg import CameraInfo, CompressedImage
 
 
@@ -32,7 +32,16 @@ class ROSAgent:
         topic = f"/{self.vehicle}/camera_node/camera_info"
         self.cam_info_pub = rospy.Publisher(topic, CameraInfo, queue_size=1)
 
+
+
+
         # copied from camera driver:
+
+        left_encoder_topic = "/{}/left_wheel_encoder_node/tick".format(self.vehicle)
+        self.left_encoder_pub = rospy.Publisher(left_encoder_topic, WheelEncoderStamped, queue_size=1)
+        right_encoder_topic = "/{}/right_wheel_encoder_node/tick".format(self.vehicle)
+        self.right_encoder_pub = rospy.Publisher(right_encoder_topic, WheelEncoderStamped, queue_size=1)
+
 
         # For intrinsic calibration
         self.cali_file_folder = '/data/config/calibrations/camera_intrinsic/'
@@ -95,6 +104,31 @@ class ROSAgent:
         img_msg.data = np.array(cv2.imencode(".jpg", contig)[1]).tostring()
 
         self.cam_pub.publish(img_msg)
+
+    def publish_odometry(self, resolution_rad, left_rad, right_rad):
+        """
+        :param odom: the odometry from the DB20Observation
+        :return: none
+        """
+        if resolution_rad == 0:
+            rospy.logerr("Can't interpret encoder data with resolution 0")
+
+        self.left_encoder_pub.publish(
+            WheelEncoderStamped(
+                data=int(left_rad/resolution_rad),
+                resolution=int(np.pi*2/resolution_rad),
+                type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+            )
+        )
+        self.right_encoder_pub.publish(
+            WheelEncoderStamped(
+                data=int(right_rad/resolution_rad),
+                resolution=int(np.pi*2/resolution_rad),
+                type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+            )
+        )
+
+
 
     @staticmethod
     def load_camera_info(filename):
