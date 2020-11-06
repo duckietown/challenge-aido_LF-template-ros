@@ -43,7 +43,7 @@ class ROSTemplateAgent:
         self.agent._publish_img(obs)
         self.agent._publish_info()
         odometry = data.odometry
-        self.agent.publish_odometry(
+        self.agent._publish_odometry(
             odometry.resolution_rad,
             odometry.axis_left_rad,
             odometry.axis_right_rad

@@ -105,7 +105,7 @@ class ROSAgent:
 
         self.cam_pub.publish(img_msg)
 
-    def publish_odometry(self, resolution_rad, left_rad, right_rad):
+    def _publish_odometry(self, resolution_rad, left_rad, right_rad):
         """
         :param odom: the odometry from the DB20Observation
         :return: none
