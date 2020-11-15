@@ -67,10 +67,10 @@ RUN pip list
 #RUN pip3 install pillow --user --upgrade
 
 
-RUN mkdir /code/submission_ws
+RUN mkdir submission_ws
 
-COPY submission_ws/src /code/submission_ws/src
-COPY launchers /code
+COPY submission_ws/src submission_ws/src
+COPY launchers ./
 
 # let's copy all our solution files to our workspace
 # if you have more file use the COPY command to move them to the workspace
