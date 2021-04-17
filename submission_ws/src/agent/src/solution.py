@@ -21,10 +21,6 @@ from aido_schemas import (
 
 from rosagent import ROSAgent
 
-# TODO: @AndreaCensi, this is a hack from @AndreaD, check this: https://ethidsc.atlassian.net/browse/DTSW-887
-import sys
-sys.argv = [sys.argv[0]]
-
 
 class ROSTemplateAgent:
     def __init__(self):
@@ -91,4 +87,4 @@ def jpg2rgb(image_data):
 if __name__ == "__main__":
     node = ROSTemplateAgent()
     protocol = protocol_agent_DB20
-    wrap_direct(node=node, protocol=protocol)
+    wrap_direct(node=node, protocol=protocol, args=[])
