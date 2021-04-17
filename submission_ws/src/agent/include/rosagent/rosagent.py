@@ -11,6 +11,7 @@ from sensor_msgs.msg import CameraInfo, CompressedImage
 
 
 class ROSAgent:
+
     def __init__(self):
         # Get the vehicle name, which comes in as HOSTNAME
         self.vehicle = os.getenv("VEHICLE_NAME")
