@@ -79,9 +79,5 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     . ${CATKIN_WS_DIR}/devel/setup.bash  && \
     catkin build --workspace /code/submission_ws
 
-# Note: here we try to import the solution code
-# so that we can check all of the libraries are imported correctly
-RUN /bin/bash -c "source ${CATKIN_WS_DIR}/devel/setup.bash && python3 -c 'from solution import *'"
-
 ENV DISABLE_CONTRACTS=1
 CMD ["bash", "run_and_start.sh"]
