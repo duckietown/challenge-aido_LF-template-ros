@@ -21,6 +21,10 @@ from aido_schemas import (
 
 from rosagent import ROSAgent
 
+# TODO: @AndreaCensi, this is a hack from @AndreaD, check this: https://ethidsc.atlassian.net/browse/DTSW-887
+import sys
+sys.argv = [sys.argv[0]]
+
 
 class ROSTemplateAgent:
     def __init__(self):
