@@ -86,7 +86,7 @@ class ROSAgent:
         self.current_camera_info.header.stamp = stamp
         self.cam_info_pub.publish(self.current_camera_info)
 
-    def _publish_episode_start(self, episode_name: str , payload_yaml: str):
+    def _publish_episode_start(self, episode_name: str, payload_yaml: str):
         episode_start_message = EpisodeStart()
         stamp = rospy.Time.now()
         episode_start_message.header.stamp = stamp
