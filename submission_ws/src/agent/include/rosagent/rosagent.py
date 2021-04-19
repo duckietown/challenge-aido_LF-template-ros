@@ -6,7 +6,7 @@ import numpy as np
 import yaml
 
 import rospy
-from duckietown_msgs.msg import BoolStamped, WheelEncoderStamped, WheelsCmdStamped
+from duckietown_msgs.msg import EpisodeStart, WheelEncoderStamped, WheelsCmdStamped
 from sensor_msgs.msg import CameraInfo, CompressedImage
 
 
@@ -34,7 +34,7 @@ class ROSAgent:
         self.cam_info_pub = rospy.Publisher(topic, CameraInfo, queue_size=1)
 
         episode_start_topic = "/{}/episode_start".format(self.vehicle)
-        self.episode_start_pub = rospy.Publisher(episode_start_topic, BoolStamped, queue_size=1)
+        self.episode_start_pub = rospy.Publisher(episode_start_topic, EpisodeStart, queue_size=1)
 
         # copied from camera driver:
 
@@ -86,11 +86,12 @@ class ROSAgent:
         self.current_camera_info.header.stamp = stamp
         self.cam_info_pub.publish(self.current_camera_info)
 
-    def _publish_episode_start(self):
-        episode_start_message = BoolStamped()
+    def _publish_episode_start(self, episode_name: str, payload_yaml: str):
+        episode_start_message = EpisodeStart()
         stamp = rospy.Time.now()
         episode_start_message.header.stamp = stamp
-        episode_start_message.data = True
+        episode_start_message.episode_name = episode_name
+        episode_start_message.other_payload_yaml = payload_yaml
         self.episode_start_pub.publish(episode_start_message)
 
     def _publish_img(self, obs):
