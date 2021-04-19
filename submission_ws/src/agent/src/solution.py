@@ -36,7 +36,8 @@ class ROSTemplateAgent:
 
     def on_received_episode_start(self, context: Context, data: EpisodeStart):
         context.info("Starting episode %s." % data)
-        self.agent._publish_episode_start()
+        yaml_payload = getattr(data, 'yaml_payload', '42')
+        self.agent._publish_episode_start(data.episode_name, yaml_payload)
 
     def on_received_observations(self, context: Context, data: DB20Observations):
         jpg_data = data.camera.jpg_data
