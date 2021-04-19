@@ -34,7 +34,7 @@ class ROSAgent:
         self.cam_info_pub = rospy.Publisher(topic, CameraInfo, queue_size=1)
 
         episode_start_topic = "/{}/episode_start".format(self.vehicle)
-        self.episode_start_pub = rospy.Publisher(episode_start_topic, EpisodeStart, queue_size=1)
+        self.episode_start_pub = rospy.Publisher(episode_start_topic, EpisodeStart, queue_size=1, latch=True)
 
         # copied from camera driver:
 
