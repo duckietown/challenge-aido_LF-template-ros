@@ -23,8 +23,8 @@ from rosagent import ROSAgent
 
 
 class ROSTemplateAgent:
-    def __init__(self):
 
+    def __init__(self):
         # Start the ROSAgent, which handles publishing images and subscribing to action
         self.agent = ROSAgent()
 
@@ -35,8 +35,8 @@ class ROSTemplateAgent:
         np.random.seed(data)
 
     def on_received_episode_start(self, context: Context, data: EpisodeStart):
-        context.info("Starting episode %s." % data)
-        yaml_payload = getattr(data, 'yaml_payload', '42')
+        context.info("Starting episode %s." % data.episode_name)
+        yaml_payload = getattr(data, 'yaml_payload', '{}')
         self.agent._publish_episode_start(data.episode_name, yaml_payload)
 
     def on_received_observations(self, context: Context, data: DB20Observations):
