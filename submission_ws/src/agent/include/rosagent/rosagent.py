@@ -9,7 +9,7 @@ import rospy
 from duckietown_msgs.msg import EpisodeStart, WheelEncoderStamped, WheelsCmdStamped
 from sensor_msgs.msg import CameraInfo, CompressedImage
 
-
+from aido_schemas import logger
 class ROSAgent:
 
     def __init__(self):
@@ -64,8 +64,14 @@ class ROSAgent:
         rospy.loginfo(f"Using calibration file: {self.cali_file}")
 
         # Initializes the node
-        rospy.init_node("ROSTemplate")
-
+        rospy.loginfo('Just before init_node [start]')
+        logger.info('my message 1')
+        rospy.loginfo('Just before init_node [end]')
+        rospy.init_node("ROSTemplate", log_level=rospy.DEBUG)
+        rospy.loginfo('Just after init_node [start]')
+        logger.info('my message 2')
+        rospy.loginfo('Just after init_node [end]')
+        
     def _ik_action_cb(self, msg):
         """
         Callback to listen to last outputted action from inverse_kinematics node
