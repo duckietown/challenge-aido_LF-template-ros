@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 from PIL import Image
-
+import rospy
 from aido_schemas import (
     Context,
     DB20Commands,
@@ -73,6 +73,8 @@ class ROSTemplateAgent:
 
     def finish(self, context):
         context.info("finish()")
+
+        rospy.signal_shutdown("My job here is donw.")
 
 
 def jpg2rgb(image_data):
