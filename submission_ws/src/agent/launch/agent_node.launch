@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <node name="agent_node" pkg="agent" type="solution.py" />
+</launch>

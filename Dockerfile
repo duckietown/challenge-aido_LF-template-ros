@@ -52,12 +52,9 @@ RUN apt-get update && apt-get install -y libcairo2-dev libjpeg-dev libgif-dev
 RUN pip3 install pycairo==1.19.1
 RUN pip check
 
-
 COPY requirements.* ./
 RUN cat requirements.* > .requirements.txt
 RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
-
-
 
 RUN echo PYTHONPATH=$PYTHONPATH
 RUN pipdeptree
@@ -66,18 +63,10 @@ RUN pip list
 # For ROS Agent - Need to upgrade Pillow for Old ROS stack
 #RUN pip3 install pillow --user --upgrade
 
-
 RUN mkdir submission_ws
 
 COPY submission_ws/src submission_ws/src
 COPY launchers ./
-
-# let's copy all our solution files to our workspace
-# if you have more file use the COPY command to move them to the workspace
-COPY solution.py ./
-
-# For ROS Agent - Additional Files
-COPY rosagent.py ./
 
 # FIXME: what is this for? envs are not persisted
 RUN /bin/bash -c "export PYTHONPATH="/usr/local/lib/python3.7/dist-packages:$PYTHONPATH""
@@ -86,15 +75,9 @@ ENV HOSTNAME=agent
 ENV VEHICLE_NAME=agent
 ENV ROS_MASTER_URI=http://localhost:11311
 
-
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     . ${CATKIN_WS_DIR}/devel/setup.bash  && \
     catkin build --workspace /code/submission_ws
-
-
-# Note: here we try to import the solution code
-# so that we can check all of the libraries are imported correctly
-RUN /bin/bash -c "source ${CATKIN_WS_DIR}/devel/setup.bash && python3 -c 'from solution import *'"
 
 ENV DISABLE_CONTRACTS=1
 CMD ["bash", "run_and_start.sh"]
