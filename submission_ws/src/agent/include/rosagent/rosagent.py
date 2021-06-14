@@ -113,8 +113,7 @@ class ROSAgent:
         img_msg.header.stamp.nsecs = time.nsecs
 
         img_msg.format = "jpeg"
-        contig = cv2.cvtColor(np.ascontiguousarray(obs), cv2.COLOR_BGR2RGB)
-        img_msg.data = np.array(cv2.imencode(".jpg", contig)[1]).tostring()
+        img_msg.data = obs
 
         self.cam_pub.publish(img_msg)
 
