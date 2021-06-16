@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 from PIL import Image
-
+import rospy
 from aido_schemas import (
     Context,
     DB20Commands,
@@ -41,8 +41,7 @@ class ROSTemplateAgent:
 
     def on_received_observations(self, context: Context, data: DB20Observations):
         jpg_data = data.camera.jpg_data
-        obs = jpg2rgb(jpg_data)
-        self.agent._publish_img(obs)
+        self.agent._publish_img(jpg_data)
         self.agent._publish_info()
         odometry = data.odometry
         self.agent._publish_odometry(
@@ -74,15 +73,7 @@ class ROSTemplateAgent:
     def finish(self, context):
         context.info("finish()")
 
-
-def jpg2rgb(image_data):
-    """ Reads JPG bytes as RGB"""
-    im = Image.open(io.BytesIO(image_data))
-    im = im.convert("RGB")
-    data = np.array(im)
-    assert data.ndim == 3
-    assert data.dtype == np.uint8
-    return data
+        rospy.signal_shutdown("My job here is done.")
 
 
 if __name__ == "__main__":
