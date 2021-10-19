@@ -3,51 +3,51 @@ workflows:
   version: 2
   test:
     jobs:
-      - submit:
-          context: pip-staging
+    - submit:
+        context: pip-staging
 
 jobs:
   submit:
     docker:
-      - image: ${DOCKER_REGISTRY}/duckietown/aido-submission-ci-test:daffy-amd64
+    - image: ${DOCKER_REGISTRY}/duckietown/aido-submission-ci-test:daffy-amd64
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Python stats
-          command: |
-            mkdir -p build-stats
-            pip list   | sort | tee  build-stats/pip-list.txt
-            pip freeze | sort | tee  build-stats/pip-freeze.txt
-      - store_artifacts:
-        path: build-stats
-        destination: build-stats
-      - run:
-          name: Setup daffy commands
-          # language=bash
-          command: |
-            dts --set-version $DTS_VERSION
-            dts update
-      - run:
-          name: Setup token
-          # language=bash
-          command: |
-            dts tok verify ${token_dt1_bea}
-            dts tok set ${token_dt1_bea}
-            # this does not matter on the staging server
-            dts challenges config --docker-server $DOCKER_REGISTRY --docker-username $DOCKER_USERNAME --docker-password $DOCKER_PASSWORD
-      - run:
-          name: "Challenges info"
-          # language=bash
-          command: |
-            dts challenges info
+    - checkout
+    - setup_remote_docker:
+        docker_layer_caching: true
+    - run:
+        name: Python stats
+        command: |
+          mkdir -p build-stats
+          pip list   | sort | tee  build-stats/pip-list.txt
+          pip freeze | sort | tee  build-stats/pip-freeze.txt
+    - store_artifacts:
+      path: build-stats
+      destination: build-stats
+    - run:
+        name: Setup daffy commands
+        # language=bash
+        command: |
+          dts --set-version $DTS_VERSION
+          dts update
+    - run:
+        name: Setup token
+        # language=bash
+        command: |
+          dts tok verify ${token_dt1_bea}
+          dts tok set ${token_dt1_bea}
+          # this does not matter on the staging server
+          dts challenges config --docker-server $DOCKER_REGISTRY --docker-username $DOCKER_USERNAME --docker-password $DOCKER_PASSWORD
+    - run:
+        name: "Challenges info"
+        # language=bash
+        command: |
+          dts challenges info
 
-      - run:
-          name: Submit
-          # language=bash
-          command: |
-            dts challenges evaluate --challenge aido-hello-sim-validation
+    - run:
+        name: Submit
+        # language=bash
+        command: |
+          dts challenges evaluate --challenge aido-hello-sim-validation
 
 
 #  submit:
