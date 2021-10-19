@@ -4,20 +4,15 @@ ARG ARCH=amd64
 ARG MAJOR=daffy
 ARG BASE_TAG=${MAJOR}-${ARCH}
 
-ARG DOCKER_REGISTRY=docker.io
-FROM ${DOCKER_REGISTRY}/duckietown/dt-ros-commons:${BASE_TAG}
+FROM duckietown/dt-ros-commons:${BASE_TAG}
 WORKDIR /code
 
 
 # here, we install the requirements, some requirements come by default
 # you can add more if you need to in requirements.txt
 
-ENV DEBIAN_FRONTEND=noninteractive
-
 # DO NOT MODIFY: your submission won't run if you do
-RUN apt-get update -y && \
-    apt-get install -y apt-utils && \
-    apt-get install -y --no-install-recommends \
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
          gcc \
          libc-dev\
          git \
@@ -25,12 +20,8 @@ RUN apt-get update -y && \
          python3-tk \
          python3-wheel \
          python3-pip  \
-         libcairo2-dev \
-         libjpeg-dev\
-          libgif-dev\
          software-properties-common && \
      rm -rf /var/lib/apt/lists/*
-
 
 # RUN apt-get update -y && \
 #   add-apt-repository ppa:deadsnakes/ppa -y && \
@@ -43,29 +34,34 @@ RUN mkdir -p /data/config
 # TODO this is just for the default.yamls - these should really be taken from init_sd_card
 RUN git clone https://github.com/duckietown/duckiefleet.git /data/config
 
-ARG PIP_INDEX_URL="https://pypi.org/simple"
 
-RUN echo we have PIP_INDEX_URL=${PIP_INDEX_URL} $PIP_INDEX_URL $DOCKER_REGISTRY
-
-
+ARG PIP_INDEX_URL
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
+RUN echo PIP_INDEX_URL=${PIP_INDEX_URL}
 
-RUN echo we have PIP_INDEX_URL=${PIP_INDEX_URL} $PIP_INDEX_URL
-RUN env
+# Before installing
+RUN echo PYTHONPATH=$PYTHONPATH
+RUN pip3 install -U "pip>=20.2" pipdeptree
 
+RUN pipdeptree
+RUN pip list
 
-#RUN python3 -m pip check # XXX: fails
-RUN python3 -m pip list
+# FIXME ros-commons is broken
+RUN apt-get update && apt-get install -y libcairo2-dev libjpeg-dev libgif-dev
+
+RUN pip3 install pycairo==1.19.1
+RUN pip check
 
 COPY requirements.* ./
 RUN cat requirements.* > .requirements.txt
-RUN python3 -m pip install --no-cache-dir -r .requirements.txt
-RUN python3 -m pip check
-RUN python3 -m pip list
+RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
 
+RUN echo PYTHONPATH=$PYTHONPATH
+RUN pipdeptree
+RUN pip list
 
 # For ROS Agent - Need to upgrade Pillow for Old ROS stack
-#RUN python3 -m pip install pillow --user --upgrade
+#RUN pip3 install pillow --user --upgrade
 
 RUN mkdir submission_ws
 

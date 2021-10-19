@@ -1,3 +1,2 @@
 pipdeptree
-aido-protocols-daffy
-pycairo==1.19.1
+aido-protocols-daffy>=6.0.41

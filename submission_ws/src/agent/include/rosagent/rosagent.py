@@ -1,7 +1,7 @@
 import copy
-import logging
 import os
 
+import cv2
 import numpy as np
 import yaml
 
@@ -9,7 +9,7 @@ import rospy
 from duckietown_msgs.msg import EpisodeStart, WheelEncoderStamped, WheelsCmdStamped
 from sensor_msgs.msg import CameraInfo, CompressedImage
 
-
+from aido_schemas import logger
 class ROSAgent:
 
     def __init__(self):
@@ -17,9 +17,6 @@ class ROSAgent:
         self.vehicle = os.getenv("VEHICLE_NAME")
         topic = f"/{self.vehicle}/wheels_driver_node/wheels_cmd"
         self.ik_action_sub = rospy.Subscriber(topic, WheelsCmdStamped, self._ik_action_cb)
-
-        # TODO: listen to the LED topics
-
         # Place holder for the action, which will be read by the agent in solution.py
         self.action = np.array([0.0, 0.0])
         self.updated = True
@@ -36,7 +33,7 @@ class ROSAgent:
         topic = f"/{self.vehicle}/camera_node/camera_info"
         self.cam_info_pub = rospy.Publisher(topic, CameraInfo, queue_size=1)
 
-        episode_start_topic = f"/{self.vehicle}/episode_start"
+        episode_start_topic = "/{}/episode_start".format(self.vehicle)
         self.episode_start_pub = rospy.Publisher(episode_start_topic, EpisodeStart, queue_size=1, latch=True)
 
         # copied from camera driver:
@@ -53,7 +50,7 @@ class ROSAgent:
 
         # Locate calibration yaml file or use the default otherwise
         if not os.path.isfile(self.cali_file):
-            rospy.logwarn(f"Calibration not found: {self.cali_file}.\n Using default instead.")
+            rospy.logwarn("Calibration not found: %s.\n Using default instead." % self.cali_file)
             self.cali_file = (self.cali_file_folder + "default.yaml")
 
         # Shutdown if no calibration file not found
@@ -67,73 +64,61 @@ class ROSAgent:
         rospy.loginfo(f"Using calibration file: {self.cali_file}")
 
         # Initializes the node
-        rospy.init_node("ROSTemplate", log_level=rospy.DEBUG, disable_rosout=False)
-
-        fh = logging.FileHandler('/challenges/challenge-solution-output/rosagent-after-init_node.log')
-        fh.setLevel(logging.DEBUG)
-        # create console handler with a higher log level
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        # create formatter and add it to the handlers
-        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # fh.setFormatter(formatter)
-        # ch.setFormatter(formatter)
-        # add the handlers to the logger
-        root = logging.getLogger()
-        root.addHandler(fh)
-        root.addHandler(ch)
-        #
-        rospy.loginfo('Just after init_node.')
-        # logger.info('my message 2')
-        # rospy.loginfo('Just after init_node [end]')
-        # rospy.logerr('Errors still show up')
-
+        rospy.loginfo('Just before init_node [start]')
+        logger.info('my message 1')
+        rospy.loginfo('Just before init_node [end]')
+        rospy.init_node("ROSTemplate", log_level=rospy.DEBUG)
+        rospy.loginfo('Just after init_node [start]')
+        logger.info('my message 2')
+        rospy.loginfo('Just after init_node [end]')
+        
     def _ik_action_cb(self, msg):
         """
         Callback to listen to last outputted action from inverse_kinematics node
         Stores it and sustains same action until new message published on topic
         """
-
         self.initialized = True
         vl = msg.vel_left
         vr = msg.vel_right
         self.action = np.array([vl, vr])
         self.updated = True
 
-    def publish_info(self, timestamp: float):
+    def _publish_info(self):
         """
         Publishes a default CameraInfo - TODO: Fix after distortion applied in simulator
         """
         # Publish the CameraInfo message
-        stamp = rospy.Time.from_seconds(timestamp)
+        stamp = rospy.Time.now()
         self.current_camera_info.header.stamp = stamp
         self.cam_info_pub.publish(self.current_camera_info)
 
-    def publish_episode_start(self, episode_name: str, payload_yaml: str):
+    def _publish_episode_start(self, episode_name: str, payload_yaml: str):
         episode_start_message = EpisodeStart()
+        stamp = rospy.Time.now()
+        episode_start_message.header.stamp = stamp
         episode_start_message.episode_name = episode_name
         episode_start_message.other_payload_yaml = payload_yaml
         self.episode_start_pub.publish(episode_start_message)
 
-    def publish_img(self, obs: bytes, timestamp: float):
+    def _publish_img(self, obs):
         """
-            Publishes the image to the compressed_image topic.
+        Publishes the image to the compressed_image topic, which triggers the lane following loop
         """
 
         # XXX: make this into a function (there were a few of these conversions around...)
         img_msg = CompressedImage()
 
-        img_msg.header.stamp = rospy.Time.from_sec(timestamp)
+        time = rospy.get_rostime()
+        img_msg.header.stamp.secs = time.secs
+        img_msg.header.stamp.nsecs = time.nsecs
 
         img_msg.format = "jpeg"
         img_msg.data = obs
 
         self.cam_pub.publish(img_msg)
 
-    def publish_odometry(self, resolution_rad: float, left_rad: float, right_rad: float,
-                          timestamp: float):
+    def _publish_odometry(self, resolution_rad: float, left_rad: float, right_rad: float):
         """
-        :param timestamp:
         :param resolution_rad:
         :param left_rad:
         :param right_rad:
@@ -141,23 +126,21 @@ class ROSAgent:
         """
         if resolution_rad == 0:
             rospy.logerr("Can't interpret encoder data with resolution 0")
-        stamp = rospy.Time.from_sec(timestamp)
-        msg = WheelEncoderStamped(
-            data=int(np.round(left_rad / resolution_rad)),
-            resolution=int(np.round(np.pi * 2 / resolution_rad)),
-            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
-        )
-        msg.header.stamp = stamp
 
-        self.left_encoder_pub.publish(msg)
-
-        msg = WheelEncoderStamped(
-            data=int(np.round(right_rad / resolution_rad)),
-            resolution=int(np.round(np.pi * 2 / resolution_rad)),
-            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+        self.left_encoder_pub.publish(
+            WheelEncoderStamped(
+                data=int(np.round(left_rad / resolution_rad)),
+                resolution=int(np.round(np.pi * 2 / resolution_rad)),
+                type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+            )
         )
-        msg.header.stamp = stamp
-        self.right_encoder_pub.publish(msg)
+        self.right_encoder_pub.publish(
+            WheelEncoderStamped(
+                data=int(np.round(right_rad / resolution_rad)),
+                resolution=int(np.round(np.pi * 2 / resolution_rad)),
+                type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+            )
+        )
 
     @staticmethod
     def load_camera_info(filename):
