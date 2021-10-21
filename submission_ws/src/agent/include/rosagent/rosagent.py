@@ -11,7 +11,6 @@ from sensor_msgs.msg import CameraInfo, CompressedImage
 
 
 class ROSAgent:
-
     def __init__(self):
         # Get the vehicle name, which comes in as HOSTNAME
         self.vehicle = os.getenv("VEHICLE_NAME")
@@ -47,14 +46,14 @@ class ROSAgent:
         self.right_encoder_pub = rospy.Publisher(right_encoder_topic, WheelEncoderStamped, queue_size=1)
 
         # For intrinsic calibration
-        self.cali_file_folder = '/data/config/calibrations/camera_intrinsic/'
-        self.frame_id = rospy.get_namespace().strip('/') + '/camera_optical_frame'
+        self.cali_file_folder = "/data/config/calibrations/camera_intrinsic/"
+        self.frame_id = rospy.get_namespace().strip("/") + "/camera_optical_frame"
         self.cali_file = self.cali_file_folder + f"{self.vehicle}.yaml"
 
         # Locate calibration yaml file or use the default otherwise
         if not os.path.isfile(self.cali_file):
             rospy.logwarn(f"Calibration not found: {self.cali_file}.\n Using default instead.")
-            self.cali_file = (self.cali_file_folder + "default.yaml")
+            self.cali_file = self.cali_file_folder + "default.yaml"
 
         # Shutdown if no calibration file not found
         if not os.path.isfile(self.cali_file):
@@ -69,7 +68,7 @@ class ROSAgent:
         # Initializes the node
         rospy.init_node("ROSTemplate", log_level=rospy.DEBUG, disable_rosout=False)
 
-        fh = logging.FileHandler('/challenges/challenge-solution-output/rosagent-after-init_node.log')
+        fh = logging.FileHandler("/challenges/challenge-solution-output/rosagent-after-init_node.log")
         fh.setLevel(logging.DEBUG)
         # create console handler with a higher log level
         ch = logging.StreamHandler()
@@ -83,7 +82,7 @@ class ROSAgent:
         root.addHandler(fh)
         root.addHandler(ch)
         #
-        rospy.loginfo('Just after init_node.')
+        rospy.loginfo("Just after init_node.")
         # logger.info('my message 2')
         # rospy.loginfo('Just after init_node [end]')
         # rospy.logerr('Errors still show up')
@@ -117,7 +116,7 @@ class ROSAgent:
 
     def publish_img(self, obs: bytes, timestamp: float):
         """
-            Publishes the image to the compressed_image topic.
+        Publishes the image to the compressed_image topic.
         """
 
         # XXX: make this into a function (there were a few of these conversions around...)
@@ -130,8 +129,7 @@ class ROSAgent:
 
         self.cam_pub.publish(img_msg)
 
-    def publish_odometry(self, resolution_rad: float, left_rad: float, right_rad: float,
-                          timestamp: float):
+    def publish_odometry(self, resolution_rad: float, left_rad: float, right_rad: float, timestamp: float):
         """
         :param timestamp:
         :param resolution_rad:
@@ -145,7 +143,7 @@ class ROSAgent:
         msg = WheelEncoderStamped(
             data=int(np.round(left_rad / resolution_rad)),
             resolution=int(np.round(np.pi * 2 / resolution_rad)),
-            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL,
         )
         msg.header.stamp = stamp
 
@@ -154,7 +152,7 @@ class ROSAgent:
         msg = WheelEncoderStamped(
             data=int(np.round(right_rad / resolution_rad)),
             resolution=int(np.round(np.pi * 2 / resolution_rad)),
-            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL,
         )
         msg.header.stamp = stamp
         self.right_encoder_pub.publish(msg)
@@ -172,14 +170,14 @@ class ROSAgent:
             :obj:`CameraInfo`: a CameraInfo message object
 
         """
-        with open(filename, 'r') as stream:
+        with open(filename, "r") as stream:
             calib_data = yaml.load(stream, Loader=yaml.Loader)
         cam_info = CameraInfo()
-        cam_info.width = calib_data['image_width']
-        cam_info.height = calib_data['image_height']
-        cam_info.K = calib_data['camera_matrix']['data']
-        cam_info.D = calib_data['distortion_coefficients']['data']
-        cam_info.R = calib_data['rectification_matrix']['data']
-        cam_info.P = calib_data['projection_matrix']['data']
-        cam_info.distortion_model = calib_data['distortion_model']
+        cam_info.width = calib_data["image_width"]
+        cam_info.height = calib_data["image_height"]
+        cam_info.K = calib_data["camera_matrix"]["data"]
+        cam_info.D = calib_data["distortion_coefficients"]["data"]
+        cam_info.R = calib_data["rectification_matrix"]["data"]
+        cam_info.P = calib_data["projection_matrix"]["data"]
+        cam_info.distortion_model = calib_data["distortion_model"]
         return cam_info

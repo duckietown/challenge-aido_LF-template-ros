@@ -6,13 +6,14 @@ import os
 
 from duckietown_msgs.msg import WheelsCmdStamped
 
+
 def continuous_publisher():
     vehicle = os.getenv("VEHICLE_NAME")
     topic = "/{}/wheels_driver_node/wheels_cmd".format(vehicle)
     vel_pub = rospy.Publisher(topic, WheelsCmdStamped, queue_size=1)
-    rospy.init_node('random_action_node', anonymous=True)
+    rospy.init_node("random_action_node", anonymous=True)
     rate = rospy.Rate(10)
-    
+
     while not rospy.is_shutdown():
         msg = WheelsCmdStamped()
         msg.vel_left = np.random.random()
@@ -22,7 +23,5 @@ def continuous_publisher():
         rate.sleep()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     continuous_publisher()
-
-
