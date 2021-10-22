@@ -67,9 +67,11 @@ class ROSAgent:
 
         # Initializes the node
         rospy.init_node("ROSTemplate", log_level=rospy.DEBUG, disable_rosout=False)
-
-        fh = logging.FileHandler("/challenges/challenge-solution-output/rosagent-after-init_node.log")
-        fh.setLevel(logging.DEBUG)
+        root = logging.getLogger()
+        if os.path.exists("challenges/challenge-solution-output"):
+            fh = logging.FileHandler("/challenges/challenge-solution-output/rosagent-after-init_node.log")
+            fh.setLevel(logging.DEBUG)
+            root.addHandler(fh)
         # create console handler with a higher log level
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
@@ -78,8 +80,8 @@ class ROSAgent:
         # fh.setFormatter(formatter)
         # ch.setFormatter(formatter)
         # add the handlers to the logger
-        root = logging.getLogger()
-        root.addHandler(fh)
+
+        #
         root.addHandler(ch)
         #
         rospy.loginfo("Just after init_node.")

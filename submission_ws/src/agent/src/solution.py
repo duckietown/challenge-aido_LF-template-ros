@@ -29,11 +29,13 @@ class ROSTemplateAgent:
 
         self.last_camera_timestamp = -1
         self.last_odometry_timestamp = -1
+        self.agent = ROSAgent()
 
     def init(self, context: Context):
         context.info("init()")
         # Start the ROSAgent, which handles publishing images and subscribing to action
-        self.agent = ROSAgent()
+        # self.agent = ROSAgent()
+        print("inited")
         context.info("inited")
 
     def on_received_seed(self, context: Context, data: int):
