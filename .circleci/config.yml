@@ -1,13 +1,21 @@
+# TEMPLATED
 version: 2.1
 workflows:
   version: 2
   test:
     jobs:
-    - submit:
+    - submit-daffy-stage:
         context: pip-staging
-
+        filters:
+          branches:
+            only: /daffy-staging.*/
+    - submit-daffy-prod:
+        context: production
+        filters:
+          branches:
+            ignore: /daffy-staging.*/
 jobs:
-  submit:
+  submit: &template
     docker:
     - image: ${DOCKER_REGISTRY}/duckietown/aido-submission-ci-test:daffy-amd64
       auth:
@@ -15,8 +23,8 @@ jobs:
         password: $DOCKER_PASSWORD
     steps:
     - checkout
-#    - setup_remote_docker:
-#        docker_layer_caching: true
+    - setup_remote_docker:
+        docker_layer_caching: true
     - run:
         name: Python stats
         command: |
@@ -31,16 +39,19 @@ jobs:
         name: Setup daffy commands
         # language=bash
         command: |
+          set -x
           dts --set-version "$DTS_VERSION"
           dts update
     - run:
         name: Setup token
         # language=bash
         command: |
-          dts tok verify ${token_dt1_bea}
-          dts tok set ${token_dt1_bea}
+          set -x
+          dts tok verify "${token_dt1_bea}"
+          dts tok set "${token_dt1_bea}"
           # this does not matter on the staging server
-          dts challenges config --docker-server $DOCKER_REGISTRY --docker-username $DOCKER_USERNAME --docker-password $DOCKER_PASSWORD
+          dts challenges config --docker-server "$DOCKER_REGISTRY" --docker-username "$DOCKER_USERNAME" --docker-password "$DOCKER_PASSWORD"
+          dts challenges config --docker-server registry-stage.duckietown.org --docker-username "$DOCKER_USERNAME" --docker-password "$DOCKER_PASSWORD"
     - run:
         name: "Challenges info"
         # language=bash
@@ -51,8 +62,14 @@ jobs:
         name: Submit
         # language=bash
         command: |
-          dts challenges evaluate --challenge aido-hello-sim-validation
+          set -x
+          #dts challenges evaluate --challenge aido-hello-sim-validation
+          name="$CIRCLE_BRANCH-$CIRCLE_SHA1"
+          dts challenges submit --impersonate 1639 --challenge aido-hello-sim-validation --user-label "${name}"
+          dts challenges follow --label "${name}"
 
+  submit-daffy-prod: *template
+  submit-daffy-stage: *template
 
 #  submit:
 #    docker:
