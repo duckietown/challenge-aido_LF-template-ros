@@ -6,3 +6,4 @@ user-label: "template-ros"
 user-payload: {}
 description: |
     This is a simple random agent that operates through ROS
+validation_challenge: aido-hello-sim-validation
