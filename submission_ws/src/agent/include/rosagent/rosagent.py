@@ -68,24 +68,23 @@ class ROSAgent:
         # Initializes the node
         rospy.init_node("ROSTemplate", log_level=rospy.DEBUG, disable_rosout=False)
 
-        fh = logging.FileHandler("/challenges/challenge-solution-output/rosagent-after-init_node.log")
-        fh.setLevel(logging.DEBUG)
-        # create console handler with a higher log level
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        # create formatter and add it to the handlers
-        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # fh.setFormatter(formatter)
-        # ch.setFormatter(formatter)
-        # add the handlers to the logger
-        root = logging.getLogger()
-        root.addHandler(fh)
-        root.addHandler(ch)
-        #
+        log_path = "/challenges/challenge-solution-output"
+        if os.path.exists(log_path):
+            fh = logging.FileHandler(f"{log_path}/rosagent-after-init_node.log")
+            fh.setLevel(logging.DEBUG)
+            # create console handler with a higher log level
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            # create formatter and add it to the handlers
+            # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            # fh.setFormatter(formatter)
+            # ch.setFormatter(formatter)
+            # add the handlers to the logger
+            root = logging.getLogger()
+            root.addHandler(fh)
+            root.addHandler(ch)
+            #
         rospy.loginfo("Just after init_node.")
-        # logger.info('my message 2')
-        # rospy.loginfo('Just after init_node [end]')
-        # rospy.logerr('Errors still show up')
 
     def _ik_action_cb(self, msg):
         """
