@@ -68,9 +68,10 @@ RUN python3 -m pip list
 #RUN python3 -m pip install pillow --user --upgrade
 
 RUN mkdir submission_ws
+RUN mkdir launchers
 
 COPY submission_ws/src submission_ws/src
-COPY launchers ./
+COPY launchers launchers/
 
 # FIXME: what is this for? envs are not persisted
 RUN /bin/bash -c "export PYTHONPATH="/usr/local/lib/python3.7/dist-packages:$PYTHONPATH""
@@ -84,4 +85,4 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     catkin build --workspace /code/submission_ws
 
 ENV DISABLE_CONTRACTS=1
-CMD ["bash", "run_and_start.sh"]
+CMD ["bash", "launchers/run_and_start.sh"]
