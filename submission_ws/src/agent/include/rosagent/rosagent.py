@@ -8,7 +8,8 @@ import yaml
 import rospy
 from duckietown_msgs.msg import EpisodeStart, WheelEncoderStamped, WheelsCmdStamped
 from duckietown_msgs.msg import LEDPattern
-from sensor_msgs.msg import CameraInfo, CompressedImage, ColorRGBA
+from sensor_msgs.msg import CameraInfo, CompressedImage
+from std_msgs.msg import ColorRGBA
 from aido_schemas import RGB
 
 class ROSAgent:
