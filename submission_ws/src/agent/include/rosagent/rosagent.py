@@ -7,22 +7,26 @@ import yaml
 
 import rospy
 from duckietown_msgs.msg import EpisodeStart, WheelEncoderStamped, WheelsCmdStamped
-from sensor_msgs.msg import CameraInfo, CompressedImage
-
+from duckietown_msgs.msg import LEDPattern
+from sensor_msgs.msg import CameraInfo, CompressedImage, ColorRGBA
+from aido_schemas import RGB
 
 class ROSAgent:
     def __init__(self):
         # Get the vehicle name, which comes in as HOSTNAME
         self.vehicle = os.getenv("VEHICLE_NAME")
-        topic = f"/{self.vehicle}/wheels_driver_node/wheels_cmd"
-        self.ik_action_sub = rospy.Subscriber(topic, WheelsCmdStamped, self._ik_action_cb)
-
-        # TODO: listen to the LED topics
+        action_topic = f"/{self.vehicle}/wheels_driver_node/wheels_cmd"
+        self.ik_action_sub = rospy.Subscriber(action_topic, WheelsCmdStamped, self._ik_action_cb)
+        led_topic = f"/{self.vehicle}/led_emitter_node/led_pattern"
+        self.led_sub = rospy.Subscriber(led_topic, LEDPattern, self._led_cb)
 
         # Place holder for the action, which will be read by the agent in solution.py
         self.action = np.array([0.0, 0.0])
         self.updated = True
         self.initialized = False
+
+        white_led = RGB(1.0, 1.0, 1.0)
+        self.leds = [[white_led]]*5
 
         # Publishes onto the corrected image topic
         # since image out of simulator is currently rectified
@@ -98,6 +102,13 @@ class ROSAgent:
         vl = msg.vel_left
         vr = msg.vel_right
         self.action = np.array([vl, vr])
+        self.updated = True
+
+    def _led_cb(self, msg):
+        self.leds_initialized = True
+        for i in range(5):
+            led = RGB(msg.rgb_vals[i].r, msg.rgb_vals[i].g, msg.rgb_vals[i].b)
+            self.leds[i] = led
         self.updated = True
 
     def publish_info(self, timestamp: float):
