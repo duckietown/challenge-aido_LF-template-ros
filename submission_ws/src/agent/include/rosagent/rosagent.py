@@ -27,7 +27,7 @@ class ROSAgent:
         self.initialized = False
 
         white_led = RGB(1.0, 1.0, 1.0)
-        self.leds = [[white_led]]*5
+        self.leds = [white_led]*5
 
         # Publishes onto the corrected image topic
         # since image out of simulator is currently rectified
