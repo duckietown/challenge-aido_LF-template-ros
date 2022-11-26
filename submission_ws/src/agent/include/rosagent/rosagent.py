@@ -24,7 +24,6 @@ class ROSAgent:
         # Place holder for the action, which will be read by the agent in solution.py
         self.action = np.array([0.0, 0.0])
         self.updated = True
-        self.initialized = False
 
         white_led = RGB(1.0, 1.0, 1.0)
         self.leds = [white_led]*5
@@ -99,14 +98,12 @@ class ROSAgent:
         Stores it and sustains same action until new message published on topic
         """
 
-        self.initialized = True
         vl = msg.vel_left
         vr = msg.vel_right
         self.action = np.array([vl, vr])
         self.updated = True
 
     def _led_cb(self, msg):
-        self.leds_initialized = True
         for i in range(5):
             led = RGB(msg.rgb_vals[i].r, msg.rgb_vals[i].g, msg.rgb_vals[i].b)
             self.leds[i] = led
