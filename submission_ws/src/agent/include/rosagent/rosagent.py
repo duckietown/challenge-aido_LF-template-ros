@@ -3,17 +3,17 @@ import logging
 import os
 
 import numpy as np
-import rospy
 import yaml
-from aido_schemas import RGB
+
+import rospy
 from duckietown_msgs.msg import EpisodeStart, WheelEncoderStamped, WheelsCmdStamped
 from duckietown_msgs.msg import LEDPattern
 from sensor_msgs.msg import CameraInfo, CompressedImage
-
+from std_msgs.msg import ColorRGBA
+from aido_schemas import RGB
 
 class ROSAgent:
     def __init__(self):
-        self.initialized: bool = False
         # Get the vehicle name, which comes in as HOSTNAME
         self.vehicle = os.getenv("VEHICLE_NAME")
         action_topic = f"/{self.vehicle}/wheels_driver_node/wheels_cmd"
