@@ -75,7 +75,7 @@ class ROSTemplateAgent:
                 if dt > 2.0:
                     context.info(f"agent not ready since {dt:.1f} s")
                     time.sleep(0.5)
-                if dt > 60:
+                if dt > 180:
                     msg = "I have been waiting for commands from the ROS part" f" since {int(dt)} s"
                     context.error(msg)
                     raise Exception(msg)
