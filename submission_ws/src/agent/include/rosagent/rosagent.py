@@ -12,6 +12,7 @@ from sensor_msgs.msg import CameraInfo, CompressedImage
 from std_msgs.msg import ColorRGBA
 from aido_schemas import RGB
 
+
 class ROSAgent:
     def __init__(self):
         # Get the vehicle name, which comes in as HOSTNAME
@@ -27,7 +28,7 @@ class ROSAgent:
         self.initialized = False
 
         white_led = RGB(1.0, 1.0, 1.0)
-        self.leds = [white_led]*5
+        self.leds = [white_led] * 5
 
         # Publishes onto the corrected image topic
         # since image out of simulator is currently rectified

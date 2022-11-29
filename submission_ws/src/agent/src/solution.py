@@ -88,12 +88,9 @@ class ROSTemplateAgent:
             pwm_left, pwm_right = self.agent.action
             self.agent.updated = False
 
-        led_commands = LEDSCommands(self.agent.leds[0],
-                                    self.agent.leds[1],
-                                    self.agent.leds[2],
-                                    self.agent.leds[3],
-                                    self.agent.leds[4]
-                                    )
+        led_commands = LEDSCommands(
+            self.agent.leds[0], self.agent.leds[1], self.agent.leds[2], self.agent.leds[3], self.agent.leds[4]
+        )
         pwm_commands = PWMCommands(motor_left=pwm_left, motor_right=pwm_right)
         commands = DB20Commands(pwm_commands, led_commands)
 
