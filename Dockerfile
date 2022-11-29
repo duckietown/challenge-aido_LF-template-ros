@@ -43,7 +43,7 @@ RUN mkdir -p /data/config
 # TODO this is just for the default.yamls - these should really be taken from init_sd_card
 RUN git clone https://github.com/duckietown/duckiefleet.git /data/config
 
-ARG PIP_INDEX_URL="https://pypi.org/simple"
+ARG PIP_INDEX_URL="https://pypi.org/simple/"
 
 RUN echo we have PIP_INDEX_URL=${PIP_INDEX_URL} $PIP_INDEX_URL $DOCKER_REGISTRY
 
