@@ -62,28 +62,36 @@ class ROSTemplateAgent:
 
     def on_received_get_commands(self, context: Context, data: GetCommands):
         # context.info(f'on_received_get_commands')
-
+        now_time = data.at_time
         if not self.agent.initialized:
             pwm_left, pwm_right = [0, 0]
         else:
             # TODO: let's use a queue here. Performance suffers otherwise.
             # What you should do is: *get the last command*, if available
             # otherwise, wait for one command.
-            t0 = time.time()
-            while not self.agent.updated:
+
+            I_am_on_a_robot = ...  # FIXME: liam
+
+            raise Exception("@Liam you need to implement this switch")
+            SYNCHRONOUS = not I_am_on_a_robot
+            if SYNCHRONOUS:
+
+                # use condition to minimize the latency here!
+                t0 = time.time()
+                while not self.agent.updated:
+                    dt = time.time() - t0
+                    if dt > 2.0:
+                        context.info(f"agent not ready since {dt:.1f} s")
+                        time.sleep(0.5)
+                    if dt > 180:
+                        msg = "I have been waiting for commands from the ROS part" f" since {int(dt)} s"
+                        context.error(msg)
+                        raise Exception(msg)
+                    time.sleep(0.02)
                 dt = time.time() - t0
                 if dt > 2.0:
-                    context.info(f"agent not ready since {dt:.1f} s")
-                    time.sleep(0.5)
-                if dt > 180:
-                    msg = "I have been waiting for commands from the ROS part" f" since {int(dt)} s"
-                    context.error(msg)
-                    raise Exception(msg)
-                time.sleep(0.02)
-            dt = time.time() - t0
-            if dt > 2.0:
-                context.info(f"obtained agent commands after {dt:.1f} s")
-                time.sleep(0.2)
+                    context.info(f"obtained agent commands after {dt:.1f} s")
+                    time.sleep(0.2)
 
             pwm_left, pwm_right = self.agent.action
             self.agent.updated = False
