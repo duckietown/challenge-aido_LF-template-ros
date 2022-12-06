@@ -34,6 +34,12 @@ class ROSTemplateAgent:
         context.info("init()")
         # Start the ROSAgent, which handles publishing images and subscribing to action
         self.agent = ROSAgent()
+        self.on_a_robot = (self.agent.vehicle != "agent")
+        # LP there might be a better way to do this but for now we query
+        # on the vehicle name to see if we are in sim or on a robot
+        # failure mode is someone names there real robot "agent"
+        # which is probably something we should disallow anyway.
+        context.info(f"Running on robot = {self.on_a_robot}.")
         context.info("inited")
 
     def on_received_seed(self, context: Context, data: int):
@@ -70,13 +76,9 @@ class ROSTemplateAgent:
             # What you should do is: *get the last command*, if available
             # otherwise, wait for one command.
 
-            on_a_robot = (self.agent.vehicle != "agent")
-            # LP there might be a better way to do this but for now we query
-            # on the vehicle name to see if we are in sim or on a robot
-            # failure mode is someone names there real robot "agent"
-            # which is probably something we should disallow anyway.
 
-            SYNCHRONOUS = not on_a_robot
+
+            SYNCHRONOUS = not self.on_a_robot
             if SYNCHRONOUS:
                 t0 = time.time()
                 # TODO should we block instead of busy waiting?
