@@ -70,20 +70,22 @@ class ROSTemplateAgent:
             # What you should do is: *get the last command*, if available
             # otherwise, wait for one command.
 
-            I_am_on_a_robot = ...  # FIXME: liam
+            on_a_robot = (self.agent.vehicle != "agent")
+            # LP there might be a better way to do this but for now we query
+            # on the vehicle name to see if we are in sim or on a robot
+            # failure mode is someone names there real robot "agent"
+            # which is probably something we should disallow anyway.
 
-            raise Exception("@Liam you need to implement this switch")
-            SYNCHRONOUS = not I_am_on_a_robot
+            SYNCHRONOUS = not on_a_robot
             if SYNCHRONOUS:
-
-                # use condition to minimize the latency here!
                 t0 = time.time()
+                # TODO should we block instead of busy waiting?
                 while not self.agent.updated:
                     dt = time.time() - t0
                     if dt > 2.0:
                         context.info(f"agent not ready since {dt:.1f} s")
                         time.sleep(0.5)
-                    if dt > 180:
+                    if dt > 300:
                         msg = "I have been waiting for commands from the ROS part" f" since {int(dt)} s"
                         context.error(msg)
                         raise Exception(msg)
