@@ -1,0 +1,1 @@
+"""ROS template solution package."""

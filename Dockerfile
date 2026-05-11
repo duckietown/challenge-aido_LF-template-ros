@@ -1,88 +1,111 @@
-# Definition of Submission container
+# syntax=docker/dockerfile:1.4
 
+# parameters
+ARG PROJECT_NAME="challenge-aido_LF-template-ros"
+ARG PROJECT_DESCRIPTION="This template bridges Duckiematrix world I/O into the ente ROS lane-following stack."
+ARG PROJECT_MAINTAINER="Liam Paull"
+ARG PROJECT_ICON="cube"
+ARG PROJECT_FORMAT_VERSION="1"
+
+# ==================================================>
+# ==> Do not change the code below this line
 ARG ARCH=amd64
-ARG MAJOR=daffy
-ARG BASE_TAG=${MAJOR}-${ARCH}
-
+ARG DISTRO=ente
 ARG DOCKER_REGISTRY=docker.io
-FROM ${DOCKER_REGISTRY}/duckietown/dt-ros-commons:${BASE_TAG}
-WORKDIR /code
+ARG BASE_REPOSITORY=dt-core
+ARG BASE_ORGANIZATION=duckietown
+ARG BASE_TAG=${DISTRO}-${ARCH}
+ARG LAUNCHER=default
 
+FROM ${DOCKER_REGISTRY}/${BASE_ORGANIZATION}/${BASE_REPOSITORY}:${BASE_TAG} AS base
 
-# here, we install the requirements, some requirements come by default
-# you can add more if you need to in requirements.txt
+ARG ARCH
+ARG DISTRO
+ARG DOCKER_REGISTRY
+ARG PROJECT_NAME
+ARG PROJECT_DESCRIPTION
+ARG PROJECT_MAINTAINER
+ARG PROJECT_ICON
+ARG PROJECT_FORMAT_VERSION
+ARG BASE_TAG
+ARG BASE_REPOSITORY
+ARG BASE_ORGANIZATION
+ARG LAUNCHER
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+ARG PIP_INDEX_URL="https://pypi.org/simple"
 
-ENV DEBIAN_FRONTEND=noninteractive
+RUN dt-args-check \
+    "PROJECT_NAME" "${PROJECT_NAME}" \
+    "PROJECT_DESCRIPTION" "${PROJECT_DESCRIPTION}" \
+    "PROJECT_MAINTAINER" "${PROJECT_MAINTAINER}" \
+    "PROJECT_ICON" "${PROJECT_ICON}" \
+    "PROJECT_FORMAT_VERSION" "${PROJECT_FORMAT_VERSION}" \
+    "ARCH" "${ARCH}" \
+    "DISTRO" "${DISTRO}" \
+    "DOCKER_REGISTRY" "${DOCKER_REGISTRY}" \
+    "BASE_REPOSITORY" "${BASE_REPOSITORY}" \
+    && dt-check-project-format "${PROJECT_FORMAT_VERSION}"
 
-# DO NOT MODIFY: your submission won't run if you do
-RUN apt-get update -y && \
-    apt-get install -y apt-utils && \
-    apt-get install -y --no-install-recommends \
-         gcc \
-         libc-dev\
-         git \
-         bzip2 \
-         python3-tk \
-         python3-wheel \
-         python3-pip  \
-         libcairo2-dev \
-         libjpeg-dev\
-          libgif-dev\
-         software-properties-common && \
-     rm -rf /var/lib/apt/lists/*
+ARG PROJECT_PATH="${CATKIN_WS_DIR}/src/${PROJECT_NAME}"
+ARG PROJECT_LAUNCHERS_PATH="${LAUNCHERS_DIR}/${PROJECT_NAME}"
+RUN mkdir -p "${PROJECT_PATH}" "${PROJECT_LAUNCHERS_PATH}" /data/config
+WORKDIR "${PROJECT_PATH}"
 
+ENV DT_PROJECT_NAME="${PROJECT_NAME}" \
+    DT_PROJECT_DESCRIPTION="${PROJECT_DESCRIPTION}" \
+    DT_PROJECT_MAINTAINER="${PROJECT_MAINTAINER}" \
+    DT_PROJECT_ICON="${PROJECT_ICON}" \
+    DT_PROJECT_PATH="${PROJECT_PATH}" \
+    DT_PROJECT_LAUNCHERS_PATH="${PROJECT_LAUNCHERS_PATH}" \
+    DT_LAUNCHER="${LAUNCHER}" \
+    PIP_INDEX_URL="${PIP_INDEX_URL}" \
+    VEHICLE_NAME=agent \
+    ROS_MASTER_URI=http://localhost:11311 \
+    DISABLE_CONTRACTS=1
 
-# RUN apt-get update -y && \
-#   add-apt-repository ppa:deadsnakes/ppa -y && \
-#   apt-get update -y && \
-#   apt-get install -y python3.7-dev && \
-#   ln -sf /usr/bin/python3.7 /usr/bin/python3
+COPY --from=duckietown-messages . /vendor/duckietown-messages
+COPY --from=duckietown-sdk . /vendor/duckietown-sdk
+COPY --from=dt-duckiematrix assets/embedded_maps /opt/duckietown/dt-duckiematrix/maps
+COPY ./dependencies.* "${PROJECT_PATH}/"
+RUN python3 -m pip install /vendor/duckietown-messages /vendor/duckietown-sdk
+RUN dt-pip3-install "${PROJECT_PATH}/dependencies.*"
 
-
-RUN mkdir -p /data/config
-# TODO this is just for the default.yamls - these should really be taken from init_sd_card
 RUN git clone https://github.com/duckietown/duckiefleet.git /data/config
 
-ARG PIP_INDEX_URL="https://pypi.org/simple/"
+COPY ./assets/calibrations /tmp/runtime-calibrations
+COPY ./scripts/install-runtime-calibrations.sh /usr/local/bin/install-runtime-calibrations
+RUN chmod +x /usr/local/bin/install-runtime-calibrations && \
+    /usr/local/bin/install-runtime-calibrations \
+        /tmp/runtime-calibrations \
+        /data/config/calibrations \
+        map_0/vehicle_0
 
-RUN echo we have PIP_INDEX_URL=${PIP_INDEX_URL} $PIP_INDEX_URL $DOCKER_REGISTRY
-
-
-ENV PIP_INDEX_URL=${PIP_INDEX_URL}
-
-RUN echo we have PIP_INDEX_URL=${PIP_INDEX_URL} $PIP_INDEX_URL
-RUN env
-
-
-#RUN python3 -m pip check # XXX: fails
-RUN python3 -m pip list
-
-COPY requirements.* ./
-RUN cat requirements.* > .requirements.txt
-RUN python3 -m pip install --no-cache-dir -r .requirements.txt
-RUN python3 -m pip check
-RUN python3 -m pip list
-
-
-# For ROS Agent - Need to upgrade Pillow for Old ROS stack
-#RUN python3 -m pip install pillow --user --upgrade
-
-RUN mkdir submission_ws
-RUN mkdir launchers
-
-COPY submission_ws/src submission_ws/src
-COPY launchers launchers/
-
-# FIXME: what is this for? envs are not persisted
-RUN /bin/bash -c "export PYTHONPATH="/usr/local/lib/python3.7/dist-packages:$PYTHONPATH""
-
-ENV HOSTNAME=agent
-ENV VEHICLE_NAME=agent
-ENV ROS_MASTER_URI=http://localhost:11311
-
+COPY ./solution/. "${PROJECT_PATH}/packages"
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
-    . ${CATKIN_WS_DIR}/devel/setup.bash  && \
-    catkin build --workspace /code/submission_ws
+    catkin build --workspace ${CATKIN_WS_DIR}/
 
-ENV DISABLE_CONTRACTS=1
-CMD ["bash", "launchers/run_and_start.sh"]
+COPY ./launchers/. "${PROJECT_LAUNCHERS_PATH}/"
+RUN dt-install-launchers "${PROJECT_LAUNCHERS_PATH}"
+
+CMD ["bash", "-c", "dt-launcher-${DT_LAUNCHER}"]
+
+LABEL \
+    org.duckietown.label.project.name="${PROJECT_NAME}" \
+    org.duckietown.label.project.description="${PROJECT_DESCRIPTION}" \
+    org.duckietown.label.project.maintainer="${PROJECT_MAINTAINER}" \
+    org.duckietown.label.project.icon="${PROJECT_ICON}" \
+    org.duckietown.label.project.path="${PROJECT_PATH}" \
+    org.duckietown.label.project.launchers.path="${PROJECT_LAUNCHERS_PATH}" \
+    org.duckietown.label.format.version="${PROJECT_FORMAT_VERSION}" \
+    org.duckietown.label.platform.os="${TARGETOS}" \
+    org.duckietown.label.platform.architecture="${TARGETARCH}" \
+    org.duckietown.label.platform.variant="${TARGETVARIANT}" \
+    org.duckietown.label.code.distro="${DISTRO}" \
+    org.duckietown.label.code.launcher="${LAUNCHER}" \
+    org.duckietown.label.code.python.registry="${PIP_INDEX_URL}" \
+    org.duckietown.label.base.organization="${BASE_ORGANIZATION}" \
+    org.duckietown.label.base.repository="${BASE_REPOSITORY}" \
+    org.duckietown.label.base.tag="${BASE_TAG}"

@@ -1,6 +1,13 @@
 #!/bin/bash
-source /entrypoint.sh
-source /opt/ros/noetic/setup.bash
-source /code/catkin_ws/devel/setup.bash
 
-rostopic pub /$VEHICLE_NAME/fsm_node/mode duckietown_msgs/FSMState '{header: {}, state: "LANE_FOLLOWING"}'
+source /environment.sh
+
+set -euo pipefail
+
+main() {
+    printf '%s\n' \
+        "Lane-following launchers are placeholders in challenge-aido_LF-template-ros." \
+        "Use challenge-aido_LF-baseline-duckietown for the stock lane-following stack."
+}
+
+main "$@"

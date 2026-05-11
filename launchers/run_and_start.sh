@@ -1,16 +1,34 @@
 #!/bin/bash
 
 source /environment.sh
-
 source /opt/ros/noetic/setup.bash
-source /code/catkin_ws/devel/setup.bash --extend
-source /code/submission_ws/devel/setup.bash --extend
 
-set -eux
+set -euxo pipefail
 
-dt-exec-BG roscore
+source_if_present() {
+    local setup_script="$1"
 
-dt-exec-BG roslaunch --wait random_action random_action_node.launch
-dt-exec-FG roslaunch --wait agent agent_node.launch || true
+    if [[ -n "${setup_script}" && -f "${setup_script}" ]]; then
+        source "${setup_script}" --extend
+    fi
+}
 
-copy-ros-logs
+main() {
+    local status=0
+
+    source_if_present "${CATKIN_WS_DIR:-}/devel/setup.bash"
+    source_if_present "/code/solution/devel/setup.bash"
+
+    dt-exec-BG roscore
+    dt-exec-BG roslaunch --wait agent random_action_node.launch
+
+    set +e
+    dt-exec-FG roslaunch --wait agent agent_node.launch
+    status=$?
+    set -e
+
+    copy-ros-logs
+    return "${status}"
+}
+
+main "$@"

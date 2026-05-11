@@ -1,9 +1,7 @@
 challenge:
   - aido-LF-sim-validation
-
-protocol: aido2_db18_agent-z2
-user-label: "template-ros"
+protocol: aido6_embodied_sys
+user-label: template-ros
 user-payload: {}
-description: |
-    This is a simple random agent that operates through ROS
-validation_challenge: aido-hello-sim-validation
+description: This template bridges Duckiematrix world I/O into the ente ROS lane-following stack.
+validation_challenge: aido-LF-sim-validation
