@@ -66,11 +66,7 @@ ENV DT_PROJECT_NAME="${PROJECT_NAME}" \
     ROS_MASTER_URI=http://localhost:11311 \
     DISABLE_CONTRACTS=1
 
-COPY --from=duckietown-messages . /vendor/duckietown-messages
-COPY --from=duckietown-sdk . /vendor/duckietown-sdk
-COPY --from=dt-duckiematrix assets/embedded_maps /opt/duckietown/dt-duckiematrix/maps
 COPY ./dependencies.* "${PROJECT_PATH}/"
-RUN python3 -m pip install /vendor/duckietown-messages /vendor/duckietown-sdk
 RUN dt-pip3-install "${PROJECT_PATH}/dependencies.*"
 
 RUN git clone https://github.com/duckietown/duckiefleet.git /data/config
